@@ -27,11 +27,11 @@ jobs:
     - name: Checkov 
       uses: bridgecrewio/checkov-action@v12.876.0
       with:
-        directory: terraform/ # optional, default is .
+        directory: terraform/ 
         quiet: true 
         soft_fail: true 
         framework: terraform 
-        output_format: github_failed_only # optional
+        output_format: github_failed_only 
         download_external_modules: true 
 
     - name: Set up Python 3.7
