@@ -1,0 +1,58 @@
+
+name: Technical tests sarif
+
+on:
+  workflow_dispatch:
+  
+jobs:
+  default-checks:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - uses: hashicorp/setup-terraform@v1
+
+    - name: Terraform fmt
+      id: fmt
+      run: terraform fmt -diff --recursive
+      continue-on-error: true
+
+    - name: Terraform Init
+      id: init
+      run: terraform init -backend=false
+
+    - name: Terraform Validate
+      id: validate
+      run: terraform validate ./terraform 
+
+    - name: Checkov 
+      uses: bridgecrewio/checkov-action@v12.876.0
+      with:
+        directory: terraform/ # optional, default is .
+        quiet: true 
+        soft_fail: true 
+        framework: terraform 
+        output_format: github_failed_only # optional
+        download_external_modules: true 
+
+    - name: Set up Python 3.7
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.7.7
+        
+    - name: Run checkov analysis
+      run: |
+        python --version
+        python -m pip install --upgrade pip setuptools
+        python -m pip install --upgrade 'checkov==2.0.418'
+        checkov --version
+        checkov --framework terraform -s -d terraform/ -o sarif > checkov.sarif
+        
+    - name: Expose report
+      uses: actions/upload-artifact@v2
+      with:
+        name: SARIF results
+        path: checkov.sarif
+
+    - uses: github/codeql-action/upload-sarif@v1
+      with:
+        sarif_file: checkov.sarif
