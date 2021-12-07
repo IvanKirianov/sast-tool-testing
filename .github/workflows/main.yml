@@ -14,16 +14,18 @@ jobs:
     - name: Terraform fmt
       id: fmt
       run: terraform fmt -diff --recursive
+      working-directory: ./terraform/aws
       continue-on-error: true
 
     - name: Terraform Init
       id: init
       run: terraform init -backend=false
-      working-directory: ./terraform
+      working-directory: ./terraform/aws
 
     - name: Terraform Validate
       id: validate
-      run: terraform validate ./terraform 
+      run: terraform validate
+      working-directory: ./terraform/aws
 
     - name: Checkov 
       uses: bridgecrewio/checkov-action@v12.876.0
